@@ -1,0 +1,100 @@
+Sound:
+    Spectrogram_Dim: 1025
+    Mel_Dim: 80
+    Frame_Length: 1024
+    Frame_Shift: 256
+    Sample_Rate: 16000
+    Max_Abs_Mel: 4
+    Confidence_Threshold: 0.6
+    Gaussian_Smoothing_Sigma: 0.0
+    Quantinized_Pitch_Dim: 256
+
+Num_Speakers: 20
+
+Encoder:
+    Random_Resample:
+        Min_Length: 19
+        Max_Length: 32
+        Min_Factor: 0.5
+        Max_Factor: 1.5
+    Rhyme:
+        Conv:
+            Channels: [128]
+            Kernel_Sizes: [5]
+        Norm_Grous: 8
+        LSTM:
+            Sizes: 1
+            Stacks: 1
+        Frequency: 8
+    Content:
+        Conv:
+            Channels: [512, 512, 512]
+            Kernel_Sizes: [5, 5, 5]
+        Norm_Grous: 32
+        LSTM:
+            Sizes: 8
+            Stacks: 2
+        Frequency: 8
+    Pitch:
+        Conv:
+            Channels: [256, 256, 256]
+            Kernel_Sizes: [5, 5, 5]
+        Norm_Grous: 16
+        LSTM:
+            Sizes: 32
+            Stacks: 1
+        Frequency: 8
+
+Decoder:
+    LSTM:
+        Stacks: 3
+        Sizes: 512
+
+WaveNet:
+    Residual_Channels: 64
+    ResConvGLU:
+        Blocks: 3
+        Stacks_in_Block: 10
+        Gate_Channels: 128
+        Kernel_Size: 3
+        Skip_Channels: 64
+        Dropout_Rate: 0.0
+    Upsample:
+        Scales: [4, 4, 4, 4]
+        Pad: 2
+    # Checkpoint_Path: './PWGAN/Example_Results/Checkpoint/S_400000.pkl'  # If nothing, null
+    Checkpoint_Path: 'D:/GoogleDrive/Colab_Test/PWGAN_Torch/Results/Checkpoint/S_200000.pkl'
+
+
+Train:
+    Use_Pattern_Cache: true
+    Train_Pattern:
+        Path: 'C:/Pattern/SS.Replication.Pattern/Train'
+        Metadata_File: 'METADATA.PICKLE'
+        Pattern_Length: 128     # This must be a multiple of Frequencies' lcm
+        Accumulated_Dataset_Epoch: 10   # This is to prevent slow down from torch.utils.data.DataLoader when speaker is small.        
+    Eval_Pattern:
+        Path: 'C:/Pattern/SS.Replication.Pattern/Eval'
+        Metadata_File: 'METADATA.PICKLE'
+    Num_Workers: 2
+    Batch_Size: 16
+    Learning_Rate:
+        Initial: 1.0e-4
+        Decay_Step: 1000000 # Not applied
+        Decay_Rate: 1.0 # Not applied
+    ADAM:
+        Beta1: 0.9
+        Beta2: 0.999
+        Epsilon: 1.0e-7
+    Gradient_Norm: 10.0
+    Max_Step: 800000
+    Checkpoint_Save_Interval: 1000
+    Logging_Interval: 100
+    Evaluation_Interval: 1000
+    Inference_Interval: 5000
+    Initial_Inference: true
+
+Inference_Path: 'D:/SS.Results/Inference'
+Checkpoint_Path: 'D:/SS.Results/Checkpoint'
+Log_Path: 'D:/SS.Results/Log'
+Device: '0'
