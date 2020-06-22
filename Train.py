@@ -217,7 +217,7 @@ class Trainer:
 
 
     @torch.no_grad()
-    def Inference_Step(self, speakers, rhymes, contents, pitches, factors, rhyme_Labels, content_Labels, pitch_Labels, lengths, start_Index= 0):
+    def Inference_Step(self, speakers, rhymes, contents, pitches, factors, rhyme_Labels, content_Labels, pitch_Labels, lengths, start_Index= 0, tag_Step= False, tag_Index= False):
         speakers = speakers.to(device)
         rhymes = rhymes.to(device)
         contents = contents.to(device)
@@ -265,7 +265,14 @@ class Trainer:
             plt.title('Reconstruction mel    {}'.format(title))
             plt.colorbar()
             plt.tight_layout()
-            file = 'Step-{}.S_{}.R_{}.C_{}.P_{}.IDX_{}.PNG'.format(self.steps, speaker, rhyme_Label, content_Label, pitch_Label, index + start_Index)
+            file = '{}S_{}.R_{}.C_{}.P_{}{}.PNG'.format(
+                'Step-{}.'.format(self.steps) if tag_Step else '',
+                speaker,
+                rhyme_Label,
+                content_Label,
+                pitch_Label,
+                '.IDX_{}'.format(index + start_Index) if tag_Index else ''
+                )
             plt.savefig(os.path.join(hp_Dict['Inference_Path'], 'Step-{}'.format(self.steps), 'PNG', file).replace("\\", "/"))
             plt.close(new_Figure)
 
@@ -277,20 +284,28 @@ class Trainer:
                 mode= 'replicate'
                 )
 
-            for index, (audio, rhyme_Label, content_Label, pitch_Label, length) in enumerate(zip(
+            for index, (audio, speaker, rhyme_Label, content_Label, pitch_Label, length) in enumerate(zip(
                 self.model_Dict['PWGAN'](noises, reconstructions).cpu().numpy(),
+                speakers.cpu().numpy(),
                 rhyme_Labels,
                 content_Labels,
                 pitch_Labels,
                 lengths
                 )):
-                file = 'Step-{}.S_{}.R_{}.C_{}.P_{}.IDX_{}.WAV'.format(self.steps, speaker, rhyme_Label, content_Label, pitch_Label, index + start_Index)
+                file = '{}S_{}.R_{}.C_{}.P_{}{}.WAV'.format(
+                    'Step-{}.'.format(self.steps) if tag_Step else '',
+                    speaker,
+                    rhyme_Label,
+                    content_Label,
+                    pitch_Label,
+                    '.IDX_{}'.format(index + start_Index) if tag_Index else ''
+                    )
                 wavfile.write(
                     filename= os.path.join(hp_Dict['Inference_Path'], 'Step-{}'.format(self.steps), 'WAV', file).replace("\\", "/"),
                     data= (audio[:length * hp_Dict['Sound']['Frame_Shift']] * 32767.5).astype(np.int16),
                     rate= hp_Dict['Sound']['Sample_Rate']
                     )
-
+            
     def Inference_Epoch(self):
         logging.info('(Steps: {}) Start inference.'.format(self.steps))
 
