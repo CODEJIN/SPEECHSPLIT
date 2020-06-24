@@ -302,7 +302,7 @@ class Trainer:
                     )
                 wavfile.write(
                     filename= os.path.join(hp_Dict['Inference_Path'], 'Step-{}'.format(self.steps), 'WAV', file).replace("\\", "/"),
-                    data= (audio[:length * hp_Dict['Sound']['Frame_Shift']] * 32767.5).astype(np.int16),
+                    data= (np.clip(audio[:length * hp_Dict['Sound']['Frame_Shift']], -1.0 + 1e-7, 1.0 - 1e-7) * 32767.5).astype(np.int16),
                     rate= hp_Dict['Sound']['Sample_Rate']
                     )
             

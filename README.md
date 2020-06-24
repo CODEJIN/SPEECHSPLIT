@@ -14,6 +14,9 @@
 * Optional for loss flow
     * tensorboard >= 2.2.2
 
+# Structure
+<img src='./Figures/Structure.png' width=100% height=100% />
+
 # Used dataset
 
 * Currently uploaded code is for the replication of papaer result.
