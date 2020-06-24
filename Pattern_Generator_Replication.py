@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor as PE
 from threading import Thread
 from random import shuffle
 
-from Audio import melspectrogram, preemphasis, inv_preemphasis
+from Audio import Audio_Prep, Mel_Generate
 from yin import pitch_calc
 
 with open('Hyper_Parameter.yaml') as f:
@@ -14,20 +14,9 @@ with open('Hyper_Parameter.yaml') as f:
 using_Extension = [x.upper() for x in ['.wav', '.m4a', '.flac']]
 top_DB_Dict = {'VCTK': 15, 'VC1': 23, 'VC2': 23, 'Libri': 23, 'CMUA': 60}  # VC1 and Libri is from 'https://github.com/CorentinJ/Real-Time-Voice-Cloning'
 
-def Mel_Generate(sig):
-    return np.transpose(melspectrogram(
-        y= sig,
-        num_freq= hp_Dict['Sound']['Spectrogram_Dim'],
-        hop_length= hp_Dict['Sound']['Frame_Shift'],
-        win_length= hp_Dict['Sound']['Frame_Length'],
-        num_mels= hp_Dict['Sound']['Mel_Dim'],
-        sample_rate= hp_Dict['Sound']['Sample_Rate'],
-        max_abs_value= hp_Dict['Sound']['Max_Abs_Mel']
-        ).astype(np.float32))
-
-def Pitch_Generate(sig):
+def Pitch_Generate(audio):
     pitch = pitch_calc(
-        sig= sig,
+        sig= audio,
         sr= hp_Dict['Sound']['Sample_Rate'],
         w_len= hp_Dict['Sound']['Frame_Length'],
         w_step= hp_Dict['Sound']['Frame_Shift'],
@@ -37,19 +26,21 @@ def Pitch_Generate(sig):
     return (pitch - np.min(pitch)) / (np.max(pitch) - np.min(pitch) + 1e-7)
 
 def Pattern_Generate(path, top_db= 15):
-    sig = librosa.core.load(
-        path,
-        sr = hp_Dict['Sound']['Sample_Rate']
-        )[0]
-    sig = preemphasis(sig)
-    sig = librosa.effects.trim(sig, top_db= top_db, frame_length= 32, hop_length= 16)[0] * 0.99
-    sig = inv_preemphasis(sig)
-    sig = librosa.util.normalize(sig)
+    audio = Audio_Prep(path, hp_Dict['Sound']['Sample_Rate'])    
+    mel = Mel_Generate(
+        audio= audio,
+        sample_rate= hp_Dict['Sound']['Sample_Rate'],
+        num_frequency= hp_Dict['Sound']['Spectrogram_Dim'],
+        num_mel= hp_Dict['Sound']['Mel_Dim'],
+        window_length= hp_Dict['Sound']['Frame_Length'],
+        hop_length= hp_Dict['Sound']['Frame_Shift'],        
+        mel_fmin= hp_Dict['Sound']['Mel_F_Min'],
+        mel_fmax= hp_Dict['Sound']['Mel_F_Max'],
+        max_abs_value= hp_Dict['Sound']['Max_Abs_Mel']
+        )
+    pitch = Pitch_Generate(audio)
 
-    mel = Mel_Generate(sig)
-    pitch = Pitch_Generate(sig)
-
-    return sig, mel, pitch
+    return audio, mel, pitch
 
 def Pattern_File_Generate(path, speaker_Index, speaker, dataset, tag= '', eval= False):
     pattern_Path = hp_Dict['Train']['Eval_Pattern' if eval else 'Train_Pattern']['Path']
@@ -109,10 +100,10 @@ def VCTK_Info_Load(vctk_Path, num_Speakers):
         }
     
     speakers = list(set(vctk_Speaker_Dict.values()))[:num_Speakers]
-    speakers = [x for x in list(set(vctk_Speaker_Dict.values())) if not x in ['P243', 'P240', 'P232', 'P277', 'P228', 'P226']]
-    speakers = ['P243'] + speakers + ['P232', 'P277', 'P240']
-    print(speakers)
-    print(len(speakers))
+    # speakers = [x for x in list(set(vctk_Speaker_Dict.values())) if not x in ['P243', 'P240', 'P232', 'P277', 'P228', 'P226']]
+    # speakers = ['P243'] + speakers + ['P232', 'P277', 'P240']
+    # print(speakers)
+    # print(len(speakers))
     vctk_File_Path_List = [path for path in vctk_File_Path_List if vctk_Speaker_Dict[path] in speakers]    
     vctk_Speaker_Dict = {path: speaker for path, speaker in vctk_Speaker_Dict.items() if speaker in speakers}
     speaker_Index_Dict = {speaker: index for index, speaker in enumerate(speakers)}

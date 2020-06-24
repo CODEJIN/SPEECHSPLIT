@@ -3,13 +3,15 @@ Sound:
     Mel_Dim: 80
     Frame_Length: 1024
     Frame_Shift: 256
-    Sample_Rate: 16000
+    Sample_Rate: 24000
+    Mel_F_Min: 125
+    Mel_F_Max: 7600    
     Max_Abs_Mel: 4
     Confidence_Threshold: 0.6
     Gaussian_Smoothing_Sigma: 0.0
     Quantinized_Pitch_Dim: 256
 
-Num_Speakers: 20
+Num_Speakers: 106
 
 Encoder:
     Random_Resample:
@@ -48,7 +50,7 @@ Encoder:
 Decoder:
     LSTM:
         Stacks: 3
-        Sizes: 512
+        Sizes: 1024
 
 WaveNet:
     Residual_Channels: 64
@@ -69,12 +71,12 @@ WaveNet:
 Train:
     Use_Pattern_Cache: true
     Train_Pattern:
-        Path: 'C:/Pattern/SS.Replication.Pattern/Train'
+        Path: 'C:/Pattern/SS.VCTK106.Pattern/Train'
         Metadata_File: 'METADATA.PICKLE'
         Pattern_Length: 128     # This must be a multiple of Frequencies' lcm
         Accumulated_Dataset_Epoch: 10   # This is to prevent slow down from torch.utils.data.DataLoader when speaker is small.        
     Eval_Pattern:
-        Path: 'C:/Pattern/SS.Replication.Pattern/Eval'
+        Path: 'C:/Pattern/SS.VCTK106.Pattern/Eval'
         Metadata_File: 'METADATA.PICKLE'
     Num_Workers: 2
     Batch_Size: 16
