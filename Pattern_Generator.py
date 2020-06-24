@@ -43,9 +43,8 @@ def Pattern_Generate(path, top_db= 15):
         )[0]
     sig = librosa.effects.trim(sig, top_db= top_db, frame_length= 32, hop_length= 16)[0] * 0.99
     sig = librosa.util.normalize(sig)
-    preemphasis_sig = preemphasis(sig)
 
-    mel = Mel_Generate(preemphasis_sig)
+    mel = Mel_Generate(sig)
     pitch = Pitch_Generate(sig)
 
     return sig, mel, pitch

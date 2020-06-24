@@ -5,7 +5,7 @@ from concurrent.futures import ThreadPoolExecutor as PE
 from threading import Thread
 from random import shuffle
 
-from Audio import melspectrogram, preemphasis
+from Audio import melspectrogram, preemphasis, inv_preemphasis
 from yin import pitch_calc
 
 with open('Hyper_Parameter.yaml') as f:
@@ -41,7 +41,9 @@ def Pattern_Generate(path, top_db= 15):
         path,
         sr = hp_Dict['Sound']['Sample_Rate']
         )[0]
+    sig = preemphasis(sig)
     sig = librosa.effects.trim(sig, top_db= top_db, frame_length= 32, hop_length= 16)[0] * 0.99
+    sig = inv_preemphasis(sig)
     sig = librosa.util.normalize(sig)
 
     mel = Mel_Generate(sig)
@@ -106,9 +108,11 @@ def VCTK_Info_Load(vctk_Path, num_Speakers):
         for path in vctk_File_Path_List
         }
     
-    #speakers = list(set(vctk_Speaker_Dict.values()))[:num_Speakers]
-    speakers = [x for x in list(set(vctk_Speaker_Dict.values())) if not x in ['P243', 'P240', 'P232', 'P277', 'P228', 'P226']][:num_Speakers - 4]
+    speakers = list(set(vctk_Speaker_Dict.values()))[:num_Speakers]
+    speakers = [x for x in list(set(vctk_Speaker_Dict.values())) if not x in ['P243', 'P240', 'P232', 'P277', 'P228', 'P226']]
     speakers = ['P243'] + speakers + ['P232', 'P277', 'P240']
+    print(speakers)
+    print(len(speakers))
     vctk_File_Path_List = [path for path in vctk_File_Path_List if vctk_Speaker_Dict[path] in speakers]    
     vctk_Speaker_Dict = {path: speaker for path, speaker in vctk_Speaker_Dict.items() if speaker in speakers}
     speaker_Index_Dict = {speaker: index for index, speaker in enumerate(speakers)}
