@@ -2,7 +2,8 @@ import torch
 import numpy as np
 import yaml, pickle, os, math
 from random import shuffle
-from Pattern_Generator import Pattern_Generate
+#from Pattern_Generator import Pattern_Generate
+from Pattern_Generator_Replication import Pattern_Generate
 
 with open('Hyper_Parameter.yaml') as f:
     hp_Dict = yaml.load(f, Loader=yaml.Loader)
@@ -80,7 +81,6 @@ class Dev_Dataset(torch.utils.data.Dataset):
             ))
         self.file_List = [
             x for x in metadata_Dict['File_List']
-            # if metadata_Dict['Mel_Length_Dict'][x] > hp_Dict['Train']['Train_Pattern']['Pattern_Length']
             ]
         self.dataset_Dict = metadata_Dict['Dataset_Dict']
             

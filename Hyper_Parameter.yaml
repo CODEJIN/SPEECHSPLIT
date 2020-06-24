@@ -5,7 +5,7 @@ Sound:
     Frame_Shift: 256
     Sample_Rate: 24000
     Mel_F_Min: 125
-    Mel_F_Max: 7600    
+    Mel_F_Max: 7600
     Max_Abs_Mel: 4
     Confidence_Threshold: 0.6
     Gaussian_Smoothing_Sigma: 0.0
@@ -65,18 +65,19 @@ WaveNet:
         Scales: [4, 4, 4, 4]
         Pad: 2
     # Checkpoint_Path: './PWGAN/Example_Results/Checkpoint/S_400000.pkl'  # If nothing, null
-    Checkpoint_Path: 'D:/GoogleDrive/Colab_Test/PWGAN_Torch/Results/Checkpoint/S_580000.pkl'
+    #Checkpoint_Path: 'D:/GoogleDrive/Colab_Test/PWGAN_Torch/Results/Checkpoint/S_580000.pkl'
+    Checkpoint_Path: null
 
 
 Train:
     Use_Pattern_Cache: true
     Train_Pattern:
-        Path: 'C:/Pattern/SS.VCTK106.Pattern/Train'
+        Path: 'C:/Pattern/SS.SR24K.VCTK106.Pattern/Train'
         Metadata_File: 'METADATA.PICKLE'
         Pattern_Length: 128     # This must be a multiple of Frequencies' lcm
         Accumulated_Dataset_Epoch: 10   # This is to prevent slow down from torch.utils.data.DataLoader when speaker is small.        
     Eval_Pattern:
-        Path: 'C:/Pattern/SS.VCTK106.Pattern/Eval'
+        Path: 'C:/Pattern/SS.SR24K.VCTK106.Pattern/Eval'
         Metadata_File: 'METADATA.PICKLE'
     Num_Workers: 2
     Batch_Size: 16
@@ -96,7 +97,7 @@ Train:
     Inference_Interval: 5000
     Initial_Inference: true
 
-Inference_Path: 'D:/SS.Results/Inference'
-Checkpoint_Path: 'D:/SS.Results/Checkpoint'
-Log_Path: 'D:/SS.Results/Log'
+Inference_Path: 'D:/SS.SR24K.Results/Inference'
+Checkpoint_Path: 'D:/SS.SR24K.Results/Checkpoint'
+Log_Path: 'D:/SS.SR24K.Results/Log'
 Device: '0'
