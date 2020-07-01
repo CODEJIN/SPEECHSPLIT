@@ -55,7 +55,7 @@ class SpeechSplit(torch.nn.Module):
             lstm_size= hp_Dict['Decoder']['LSTM']['Sizes'],
             )
 
-    def forward(self, rhymes, contents, pitches, speakers, random_resampling_factors):
+    def forward(self, rhymes, contents, pitches, speakers, random_resampling_factors= None):
         assert contents.size(2) == pitches.size(1)
 
         pitches = self.layer_Dict['Pitch_Quantinizer'](pitches).transpose(2, 1)
@@ -125,7 +125,7 @@ class Encoder(torch.nn.Module):
         for index in range(self.num_Conv):
             x = self.layer_Dict['Conv_{}'.format(index)](x)            
             if self.use_random_resampling:
-                x = self.layer_Dict['Random_Resampling'](x, factors[index])
+                x = self.layer_Dict['Random_Resampling'](x, factors if factors is None else factors[index])
         x = self.layer_Dict['BiLSTM'](x.transpose(2,1))[0].transpose(2,1)
         x_Forward, x_Backward = x.split(x.size(1) // 2, dim= 1) # [Batch, LSTM_dim, Time] * 2        
         x = torch.cat([
@@ -137,6 +137,9 @@ class Encoder(torch.nn.Module):
 
 class Random_Resampling(torch.nn.Module):
     def forward(self, x, factors):
+        if factors is None:
+            return x
+
         resamples = []
         for length, factor in factors:
             samples, x = x[:, :, :length], x[:, :, length:]

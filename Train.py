@@ -33,7 +33,7 @@ logging.basicConfig(
         format="%(asctime)s (%(module)s:%(lineno)d) %(levelname)s: %(message)s"
         )
 
-torch.autograd.set_detect_anomaly(True)
+# torch.autograd.set_detect_anomaly(True)
 
 class Trainer:
     def __init__(self, steps= 0):
@@ -110,6 +110,16 @@ class Trainer:
             step_size= hp_Dict['Train']['Learning_Rate']['Decay_Step'],
             gamma= hp_Dict['Train']['Learning_Rate']['Decay_Rate'],
             )
+
+        if hp_Dict['Use_Mixed_Precision']:
+            try:
+                from apex import amp
+                self.model_Dict['SpeechSplit'], self.optimizer = amp.initialize(
+                    models=self.model_Dict['SpeechSplit'],
+                    optimizers=self.optimizer
+                    )
+            except:
+                logging.info('There is no apex modules in the environment. Mixed precision does not work.')
 
         logging.info(self.model_Dict['SpeechSplit'])
 
@@ -217,7 +227,7 @@ class Trainer:
 
 
     @torch.no_grad()
-    def Inference_Step(self, speakers, rhymes, contents, pitches, factors, rhyme_Labels, content_Labels, pitch_Labels, lengths, start_Index= 0, tag_Step= False, tag_Index= False):
+    def Inference_Step(self, speakers, rhymes, contents, pitches, rhyme_Labels, content_Labels, pitch_Labels, lengths, start_Index= 0, tag_Step= False, tag_Index= False):
         speakers = speakers.to(device)
         rhymes = rhymes.to(device)
         contents = contents.to(device)
@@ -227,8 +237,7 @@ class Trainer:
             rhymes= rhymes,
             contents= contents,
             pitches= pitches,
-            speakers= speakers,
-            random_resampling_factors= factors
+            speakers= speakers
             )
 
         os.makedirs(os.path.join(hp_Dict['Inference_Path'], 'Step-{}'.format(self.steps), 'WAV').replace("\\", "/"), exist_ok= True)
@@ -305,19 +314,33 @@ class Trainer:
                     data= (np.clip(audio[:length * hp_Dict['Sound']['Frame_Shift']], -1.0 + 1e-7, 1.0 - 1e-7) * 32767.5).astype(np.int16),
                     rate= hp_Dict['Sound']['Sample_Rate']
                     )
-            
+        else:
+            for index, (reconstruction, speaker, rhyme_Label, content_Label, pitch_Label, length) in enumerate(zip(
+                reconstructions.cpu().numpy(),
+                speakers.cpu().numpy(),
+                rhyme_Labels,
+                content_Labels,
+                pitch_Labels,
+                lengths
+                )):
+                np.save(
+                    os.path.join(hp_Dict['Inference_Path'], 'Step-{}'.format(self.steps), 'WAV', file).replace("\\", "/"),
+                    reconstruction,
+                    allow_pickle= False
+                )
+
     def Inference_Epoch(self):
         logging.info('(Steps: {}) Start inference.'.format(self.steps))
 
         for model in self.model_Dict.values():
             model.eval()
 
-        for step, (speakers, rhymes, contents, pitches, factors, rhyme_Labels, content_Labels, pitch_Labels, lengths) in tqdm(
+        for step, (speakers, rhymes, contents, pitches, rhyme_Labels, content_Labels, pitch_Labels, lengths) in tqdm(
             enumerate(self.dataLoader_Dict['Inference']),
             desc='[Inference]',
             total= math.ceil(len(self.dataLoader_Dict['Inference'].dataset) / hp_Dict['Train']['Batch_Size'])
             ):
-            self.Inference_Step(speakers, rhymes, contents, pitches, factors, rhyme_Labels, content_Labels, pitch_Labels, lengths, start_Index= step * hp_Dict['Train']['Batch_Size'])
+            self.Inference_Step(speakers, rhymes, contents, pitches, rhyme_Labels, content_Labels, pitch_Labels, lengths, start_Index= step * hp_Dict['Train']['Batch_Size'])
 
         for model in self.model_Dict.values():
             model.train()
@@ -368,6 +391,16 @@ class Trainer:
 
     def PWGAN_Load_Checkpoint(self):
         self.model_Dict['PWGAN'] = PWGAN().to(device)
+
+        if hp_Dict['Use_Mixed_Precision']:
+            try:
+                from apex import amp
+                self.model_Dict['PWGAN'] = amp.initialize(
+                    models=self.model_Dict['PWGAN']
+                    )
+            except:
+                pass
+
         state_Dict = torch.load(
             hp_Dict['WaveNet']['Checkpoint_Path'],
             map_location= 'cpu'

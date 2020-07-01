@@ -211,17 +211,12 @@ class Inference_Collater:
 
         rhymes, contents, pitches, lengths = self.Stacks(rhymes, contents, pitches)
 
-        factors = [
-            random_resmpling_factors(rhymes.shape[1])
-            for _ in range(len(hp_Dict['Encoder']['Content']['Conv']['Channels']))
-            ]
-
         speakers = torch.LongTensor(speakers)   # [Batch]
         rhymes = torch.FloatTensor(rhymes).transpose(2, 1)   # [Batch, Mel_dim, Time]
         contents = torch.FloatTensor(contents).transpose(2, 1)   # [Batch, Mel_dim, Time]
         pitches = torch.FloatTensor(pitches)   # [Batch, Time]
 
-        return speakers, rhymes, contents, pitches, factors, rhyme_Labels, content_Labels, pitch_Labels, lengths
+        return speakers, rhymes, contents, pitches, rhyme_Labels, content_Labels, pitch_Labels, lengths
 
     def Stacks(self, rhymes, contents, pitches):
         max_Length = max([rhyme.shape[0] for rhyme in rhymes])

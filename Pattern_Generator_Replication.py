@@ -26,7 +26,7 @@ def Pitch_Generate(audio):
     return (pitch - np.min(pitch)) / (np.max(pitch) - np.min(pitch) + 1e-7)
 
 def Pattern_Generate(path, top_db= 15):
-    audio = Audio_Prep(path, hp_Dict['Sound']['Sample_Rate'])    
+    audio = Audio_Prep(path, hp_Dict['Sound']['Sample_Rate'], top_db)
     mel = Mel_Generate(
         audio= audio,
         sample_rate= hp_Dict['Sound']['Sample_Rate'],
@@ -99,11 +99,11 @@ def VCTK_Info_Load(vctk_Path, num_Speakers):
         for path in vctk_File_Path_List
         }
     
-    speakers = list(set(vctk_Speaker_Dict.values()))[:num_Speakers]
-    # speakers = [x for x in list(set(vctk_Speaker_Dict.values())) if not x in ['P243', 'P240', 'P232', 'P277', 'P228', 'P226']]
-    # speakers = ['P243'] + speakers + ['P232', 'P277', 'P240']
-    # print(speakers)
-    # print(len(speakers))
+    # speakers = list(set(vctk_Speaker_Dict.values()))[:num_Speakers]
+    speakers = [x for x in list(set(vctk_Speaker_Dict.values())) if not x in ['P243', 'P240', 'P232', 'P277', 'P228', 'P226']]
+    speakers = ['P243'] + speakers + ['P232', 'P277', 'P240']
+    print(speakers)
+    print(len(speakers))
     vctk_File_Path_List = [path for path in vctk_File_Path_List if vctk_Speaker_Dict[path] in speakers]    
     vctk_Speaker_Dict = {path: speaker for path, speaker in vctk_Speaker_Dict.items() if speaker in speakers}
     speaker_Index_Dict = {speaker: index for index, speaker in enumerate(speakers)}
