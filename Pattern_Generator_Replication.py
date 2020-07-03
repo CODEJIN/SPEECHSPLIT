@@ -119,11 +119,11 @@ def Split_Eval(path_List, speaker_Dict, eval_Rate):
         shuffle(path_List_Dict[speaker])
     
     train_Path_List_Dict = {
-        speaker: paths[int(len(paths) * eval_Rate):]
+        speaker: paths[max(1, int(len(paths) * eval_Rate)):]
         for speaker, paths in path_List_Dict.items()
         }
     eval_Path_List_Dict = {
-        speaker: paths[:int(len(paths) * eval_Rate)]
+        speaker: paths[:max(1, int(len(paths) * eval_Rate))]
         for speaker, paths in path_List_Dict.items()
         }
 

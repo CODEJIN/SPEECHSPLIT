@@ -3,7 +3,7 @@ Sound:
     Mel_Dim: 80
     Frame_Length: 1024
     Frame_Shift: 256
-    Sample_Rate: 24000
+    Sample_Rate: 16000
     Mel_F_Min: 125
     Mel_F_Max: 7600
     Max_Abs_Mel: 4
@@ -64,24 +64,21 @@ WaveNet:
     Upsample:
         Scales: [4, 4, 4, 4]
         Pad: 2
-    # Checkpoint_Path: './PWGAN/Example_Results/Checkpoint/S_400000.pkl'  # If nothing, null
-    #Checkpoint_Path: 'D:/GoogleDrive/Colab_Test/PWGAN_Torch/Results/Checkpoint/S_580000.pkl'
-    # Checkpoint_Path: 'D:/PWGAN.Results/SR24K.Results/Checkpoint/S_299000.pkl'
+    # Checkpoint_Path: 'D:/PWGAN.Results/SR16K.Results.VCTKLibri/Checkpoint/S_192000.pkl'
     Checkpoint_Path: null
-
-
+    
 Train:
     Use_Pattern_Cache: true
     Train_Pattern:
-        Path: 'C:/Pattern/SS.SR24K.VCTK106.Pattern/Train'
+        Path: 'C:/Pattern/SS.SR16K.VCTK106.Pattern/Train'
         Metadata_File: 'METADATA.PICKLE'
         Pattern_Length: 128     # This must be a multiple of Frequencies' lcm
         Accumulated_Dataset_Epoch: 1   # This is to prevent slow down from torch.utils.data.DataLoader when speaker is small.        
     Eval_Pattern:
-        Path: 'C:/Pattern/SS.SR24K.VCTK106.Pattern/Eval'
+        Path: 'C:/Pattern/SS.SR16K.VCTK106.Pattern/Eval'
         Metadata_File: 'METADATA.PICKLE'
     Num_Workers: 2
-    Batch_Size: 32 #16
+    Batch_Size: 16
     Learning_Rate:
         Initial: 1.0e-4
         Decay_Step: 1000000 # Not applied
@@ -96,13 +93,13 @@ Train:
     Logging_Interval: 100
     Evaluation_Interval: 1000
     Inference_Interval: 5000
-    Initial_Inference: false
+    Initial_Inference: true
 
 # Inference_Path: 'D:/GoogleDrive/Colab_Test/SPEECHSPLIT/SR24K.Results/Inference'
 # Checkpoint_Path: 'D:/GoogleDrive/Colab_Test/SPEECHSPLIT/SR24K.Results/Checkpoint'
 # Log_Path: 'D:/GoogleDrive/Colab_Test/SPEECHSPLIT/SR24K.Results/Log'
-Inference_Path: 'D:/SS.Results/SR24K.Results/Inference'
-Checkpoint_Path: 'D:/SS.Results/SR24K.Results/Checkpoint'
-Log_Path: 'D:/SS.Results/SR24K.Results/Log'
+Inference_Path: 'D:/SS.Results/SR16K.Results/Inference'
+Checkpoint_Path: 'D:/SS.Results/SR16K.Results/Checkpoint'
+Log_Path: 'D:/SS.Results/SR16K.Results/Log'
 Use_Mixed_Precision: true  # apex is required.
 Device: '1'

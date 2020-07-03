@@ -33,6 +33,14 @@ logging.basicConfig(
         format="%(asctime)s (%(module)s:%(lineno)d) %(levelname)s: %(message)s"
         )
 
+if hp_Dict['Use_Mixed_Precision']:
+    try:
+        from apex import amp
+    except:
+        logging.info('There is no apex modules in the environment. Mixed precision does not work.')
+        hp_Dict['Use_Mixed_Precision'] = False
+        
+
 # torch.autograd.set_detect_anomaly(True)
 
 class Trainer:
@@ -112,14 +120,10 @@ class Trainer:
             )
 
         if hp_Dict['Use_Mixed_Precision']:
-            try:
-                from apex import amp
-                self.model_Dict['SpeechSplit'], self.optimizer = amp.initialize(
-                    models=self.model_Dict['SpeechSplit'],
-                    optimizers=self.optimizer
-                    )
-            except:
-                logging.info('There is no apex modules in the environment. Mixed precision does not work.')
+            self.model_Dict['SpeechSplit'], self.optimizer = amp.initialize(
+                models=self.model_Dict['SpeechSplit'],
+                optimizers=self.optimizer
+                )
 
         logging.info(self.model_Dict['SpeechSplit'])
 
@@ -141,8 +145,12 @@ class Trainer:
 
         loss_Dict['Loss'] = self.criterion_Dict['MSE'](mels, reconstructions)
 
-        self.optimizer.zero_grad()                
-        loss_Dict['Loss'].backward()        
+        self.optimizer.zero_grad()
+        if hp_Dict['Use_Mixed_Precision']:            
+            with amp.scale_loss(loss_Dict['Loss'], self.optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            loss_Dict['Loss'].backward()        
         torch.nn.utils.clip_grad_norm_(
             parameters= self.model_Dict['SpeechSplit'].parameters(),
             max_norm= hp_Dict['Train']['Gradient_Norm']
@@ -240,9 +248,8 @@ class Trainer:
             speakers= speakers
             )
 
-        os.makedirs(os.path.join(hp_Dict['Inference_Path'], 'Step-{}'.format(self.steps), 'WAV').replace("\\", "/"), exist_ok= True)
+        
         os.makedirs(os.path.join(hp_Dict['Inference_Path'], 'Step-{}'.format(self.steps), 'PNG').replace("\\", "/"), exist_ok= True)
-
         for index, (speaker, rhyme, content, pitch, reconstruction, rhyme_Label, content_Label, pitch_Label, length) in enumerate(zip(
             speakers.cpu().numpy(),
             rhymes.cpu().numpy(),
@@ -286,6 +293,8 @@ class Trainer:
             plt.close(new_Figure)
 
         if 'PWGAN' in self.model_Dict.keys():
+            os.makedirs(os.path.join(hp_Dict['Inference_Path'], 'Step-{}'.format(self.steps), 'WAV').replace("\\", "/"), exist_ok= True)
+
             noises = torch.randn(reconstructions.size(0), reconstructions.size(2) * hp_Dict['Sound']['Frame_Shift']).to(device)
             reconstructions = torch.nn.functional.pad(
                 reconstructions,
@@ -315,6 +324,8 @@ class Trainer:
                     rate= hp_Dict['Sound']['Sample_Rate']
                     )
         else:
+            os.makedirs(os.path.join(hp_Dict['Inference_Path'], 'Step-{}'.format(self.steps), 'NPY').replace("\\", "/"), exist_ok= True)
+
             for index, (reconstruction, speaker, rhyme_Label, content_Label, pitch_Label, length) in enumerate(zip(
                 reconstructions.cpu().numpy(),
                 speakers.cpu().numpy(),
@@ -323,11 +334,19 @@ class Trainer:
                 pitch_Labels,
                 lengths
                 )):
+                file = '{}S_{}.R_{}.C_{}.P_{}{}.NPY'.format(
+                    'Step-{}.'.format(self.steps) if tag_Step else '',
+                    speaker,
+                    rhyme_Label,
+                    content_Label,
+                    pitch_Label,
+                    '.IDX_{}'.format(index + start_Index) if tag_Index else ''
+                    )
                 np.save(
-                    os.path.join(hp_Dict['Inference_Path'], 'Step-{}'.format(self.steps), 'WAV', file).replace("\\", "/"),
+                    os.path.join(hp_Dict['Inference_Path'], 'Step-{}'.format(self.steps), 'NPY', file).replace("\\", "/"),
                     reconstruction,
                     allow_pickle= False
-                )
+                    )
 
     def Inference_Epoch(self):
         logging.info('(Steps: {}) Start inference.'.format(self.steps))
@@ -367,6 +386,12 @@ class Trainer:
         self.steps = state_Dict['Steps']
         self.epochs = state_Dict['Epochs']
 
+        if hp_Dict['Use_Mixed_Precision']:
+            if not 'AMP' in state_Dict.keys():
+                logging.info('No AMP state dict is in the checkpoint. Model regards this checkpoint is trained without mixed precision.')
+            else:                
+                amp.load_state_dict(state_Dict['AMP'])
+
         logging.info('Checkpoint loaded at {} steps.'.format(self.steps))
 
     def Save_Checkpoint(self):
@@ -381,6 +406,8 @@ class Trainer:
             'Steps': self.steps,
             'Epochs': self.epochs,
             }
+        if hp_Dict['Use_Mixed_Precision']:
+            state_Dict['AMP'] = amp.state_dict()
 
         torch.save(
             state_Dict,
@@ -393,13 +420,9 @@ class Trainer:
         self.model_Dict['PWGAN'] = PWGAN().to(device)
 
         if hp_Dict['Use_Mixed_Precision']:
-            try:
-                from apex import amp
-                self.model_Dict['PWGAN'] = amp.initialize(
-                    models=self.model_Dict['PWGAN']
-                    )
-            except:
-                pass
+            self.model_Dict['PWGAN'] = amp.initialize(
+                models=self.model_Dict['PWGAN']
+                )
 
         state_Dict = torch.load(
             hp_Dict['WaveNet']['Checkpoint_Path'],
