@@ -4,8 +4,8 @@ import logging, yaml, os, sys, argparse, time, math
 from tqdm import tqdm
 from collections import defaultdict
 from tensorboardX import SummaryWriter
-# import matplotlib
-# matplotlib.use('agg')
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from scipy.io import wavfile
 from random import sample
@@ -189,7 +189,7 @@ class Trainer:
 
         self.epochs += hp_Dict['Train']['Train_Pattern']['Accumulated_Dataset_Epoch']
 
-    @torch.no_grad()    
+    @torch.no_grad()
     def Evaluation_Step(self, speakers, mels, pitches, factors):
         loss_Dict = {}
 

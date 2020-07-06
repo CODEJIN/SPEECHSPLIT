@@ -64,8 +64,8 @@ WaveNet:
     Upsample:
         Scales: [4, 4, 4, 4]
         Pad: 2
-    # Checkpoint_Path: 'D:/PWGAN.Results/SR16K.Results.VCTKLibri/Checkpoint/S_192000.pkl'
-    Checkpoint_Path: null
+    Checkpoint_Path: 'D:/PWGAN.Results/SR16K.Results.VCTKLibri.bak/Checkpoint/S_210000.pkl'
+    # Checkpoint_Path: null
     
 Train:
     Use_Pattern_Cache: true
@@ -93,7 +93,7 @@ Train:
     Logging_Interval: 100
     Evaluation_Interval: 1000
     Inference_Interval: 5000
-    Initial_Inference: true
+    Initial_Inference: false
 
 # Inference_Path: 'D:/GoogleDrive/Colab_Test/SPEECHSPLIT/SR24K.Results/Inference'
 # Checkpoint_Path: 'D:/GoogleDrive/Colab_Test/SPEECHSPLIT/SR24K.Results/Checkpoint'
@@ -102,4 +102,4 @@ Inference_Path: 'D:/SS.Results/SR16K.Results/Inference'
 Checkpoint_Path: 'D:/SS.Results/SR16K.Results/Checkpoint'
 Log_Path: 'D:/SS.Results/SR16K.Results/Log'
 Use_Mixed_Precision: true  # apex is required.
-Device: '1'
+Device: '0'
