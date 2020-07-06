@@ -20,7 +20,8 @@
 # Used dataset
 
 * Currently uploaded code is for the replication of papaer result.
-* I selected 20 speakers randomly in VCTK for model training.
+* I used 106 speakers in VCTK for model training.
+* Two speaker is used for inference only.
 * I will add the compatible dataset later.
 
 | Dataset   | Dataset address                                 |
@@ -54,6 +55,7 @@ Before proceeding, please set the pattern, inference, and checkpoint paths in 'H
 * Train
     * Setting the parameters of training.
     * When the number of speaekrs in your train dataset is small, I recommend to increase the `Train_Pattern/Accumulated_Dataset_Epoch`.
+        * The performance of dataset module of PyTorch is not good when dataset size is small.
 
 * Inference_Path
     * Setting the inference path
@@ -63,6 +65,10 @@ Before proceeding, please set the pattern, inference, and checkpoint paths in 'H
 
 * Log_Path
     * Setting the tensorboard log path
+
+* Use_Mixed_Precision
+    * Setting mixed precision.
+    * To use, `Nvidia apex` must be installed in the environment.
 
 * Device
     * Setting which GPU device is used in multi-GPU enviornment.
@@ -105,16 +111,14 @@ python Train.py -s <int>
 * Please refer the demo site:
     * https://codejin.github.io/SpeechSplit_Demo
 
-* But, current training....
-
 # Trained checkpoint
 
-* Current training....
+| Dataset   | Tag                     | Link      |
+|-----------|-------------------------|-----------|
+| VCTK      | 106 speaker 800000 Step | [Download](https://drive.google.com/u/0/uc?id=1rrCZfk8b_t0Z1YBGAl4J64HnFJjDZDOM&export=download) |
+
 
 # Future works
 
-0. 20 Speakers version training.
-
-1. 109 Speakers(all VCTK speakers) version training.
-
-2. Changing one-hot speaker embedding to GE2E speaker embedding.
+1. Changing one-hot speaker embedding to GE2E speaker embedding.
+2. Increasing training dataset (e.g. LibriSpeech) by using GE2E speaker embedding.
