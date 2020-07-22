@@ -119,13 +119,13 @@ class Inference_Dataset(torch.utils.data.Dataset):
         if idx in self.cache_Dict.keys():
             return self.cache_Dict[idx]
 
-        speaker_ID, rhyme_Label, rhyme_Path, content_Label, content_Path, pitch_Label, pitch_Path = self.pattern_List[idx]
+        speaker_ID, rhythm_Label, rhythm_Path, content_Label, content_Path, pitch_Label, pitch_Path = self.pattern_List[idx]
         speaker_ID = int(speaker_ID)
-        _, rhyme, _ = Pattern_Generate(rhyme_Path, 15)
+        _, rhythm, _ = Pattern_Generate(rhythm_Path, 15)
         _, content, _ = Pattern_Generate(content_Path, 15)
         _, _, pitch = Pattern_Generate(pitch_Path)
 
-        pattern = speaker_ID, rhyme, content, pitch, rhyme_Label, content_Label, pitch_Label
+        pattern = speaker_ID, rhythm, content, pitch, rhythm_Label, content_Label, pitch_Label
 
         if hp_Dict['Train']['Use_Pattern_Cache']:
             self.cache_Dict[idx] = pattern
@@ -196,37 +196,37 @@ class Collater:
 class Inference_Collater:
     def __init__(self):
         frequency_LCM = \
-            (hp_Dict['Encoder']['Rhyme']['Frequency'] * hp_Dict['Encoder']['Content']['Frequency']) // \
-            math.gcd(hp_Dict['Encoder']['Rhyme']['Frequency'], hp_Dict['Encoder']['Content']['Frequency'])
+            (hp_Dict['Encoder']['Rhythm']['Frequency'] * hp_Dict['Encoder']['Content']['Frequency']) // \
+            math.gcd(hp_Dict['Encoder']['Rhythm']['Frequency'], hp_Dict['Encoder']['Content']['Frequency'])
         frequency_LCM = \
             (frequency_LCM * hp_Dict['Encoder']['Pitch']['Frequency']) // \
             math.gcd(frequency_LCM, hp_Dict['Encoder']['Pitch']['Frequency'])
         self.freqency_LCM = frequency_LCM
         
     def __call__(self, batch):
-        speakers, rhymes, contents, pitches, rhyme_Labels, content_Labels, pitch_Labels = zip(*[
-            (speaker_ID, rhyme, content, pitch, rhyme_Label, content_Label, pitch_Label)
-            for speaker_ID, rhyme, content, pitch, rhyme_Label, content_Label, pitch_Label in batch
+        speakers, rhythms, contents, pitches, rhythm_Labels, content_Labels, pitch_Labels = zip(*[
+            (speaker_ID, rhythm, content, pitch, rhythm_Label, content_Label, pitch_Label)
+            for speaker_ID, rhythm, content, pitch, rhythm_Label, content_Label, pitch_Label in batch
             ])
 
-        rhymes, contents, pitches, lengths = self.Stacks(rhymes, contents, pitches)
+        rhythms, contents, pitches, lengths = self.Stacks(rhythms, contents, pitches)
 
         speakers = torch.LongTensor(speakers)   # [Batch]
-        rhymes = torch.FloatTensor(rhymes).transpose(2, 1)   # [Batch, Mel_dim, Time]
+        rhythms = torch.FloatTensor(rhythms).transpose(2, 1)   # [Batch, Mel_dim, Time]
         contents = torch.FloatTensor(contents).transpose(2, 1)   # [Batch, Mel_dim, Time]
         pitches = torch.FloatTensor(pitches)   # [Batch, Time]
 
-        return speakers, rhymes, contents, pitches, rhyme_Labels, content_Labels, pitch_Labels, lengths
+        return speakers, rhythms, contents, pitches, rhythm_Labels, content_Labels, pitch_Labels, lengths
 
-    def Stacks(self, rhymes, contents, pitches):
-        max_Length = max([rhyme.shape[0] for rhyme in rhymes])
+    def Stacks(self, rhythms, contents, pitches):
+        max_Length = max([rhythm.shape[0] for rhythm in rhythms])
         max_Length = math.ceil(max_Length / self.freqency_LCM) * self.freqency_LCM
 
-        lengths = [rhyme.shape[0] for rhyme in rhymes]
+        lengths = [rhythm.shape[0] for rhythm in rhythms]
 
-        rhymes = np.stack([
-            np.pad(rhyme, [(0, max_Length - rhyme.shape[0]), (0, 0)], constant_values= -hp_Dict['Sound']['Max_Abs_Mel'])
-            for rhyme in rhymes
+        rhythms = np.stack([
+            np.pad(rhythm, [(0, max_Length - rhythm.shape[0]), (0, 0)], constant_values= -hp_Dict['Sound']['Max_Abs_Mel'])
+            for rhythm in rhythms
             ], axis= 0)
         
         contents = [
@@ -257,7 +257,7 @@ class Inference_Collater:
             for pitch in pitches
             ], axis= 0)
         
-        return rhymes, contents, pitches, lengths
+        return rhythms, contents, pitches, lengths
 
 
 if __name__ == "__main__":    
@@ -299,13 +299,13 @@ if __name__ == "__main__":
 
     import time
     for x in dataLoader:
-        speakers, rhymes, contents, pitches, factors, rhyme_Labels, content_Labels, pitch_Labels, lengths = x
+        speakers, rhythms, contents, pitches, factors, rhythm_Labels, content_Labels, pitch_Labels, lengths = x
         print(speakers.shape)
-        print(rhymes.shape)
+        print(rhythms.shape)
         print(contents.shape)
         print(pitches.shape)
         print(factors)
-        print(rhyme_Labels)
+        print(rhythm_Labels)
         print(content_Labels)
         print(pitch_Labels)
         print(lengths)

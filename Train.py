@@ -136,7 +136,7 @@ class Trainer:
         pitches = pitches.to(device)
 
         reconstructions = self.model_Dict['SpeechSplit'](
-            rhymes= mels,
+            rhythms= mels,
             contents= mels,
             pitches= pitches,
             speakers= speakers,
@@ -198,7 +198,7 @@ class Trainer:
         pitches = pitches.to(device)
 
         reconstructions = self.model_Dict['SpeechSplit'](
-            rhymes= mels,
+            rhythms= mels,
             contents= mels,
             pitches= pitches,
             speakers= speakers,
@@ -235,14 +235,14 @@ class Trainer:
 
 
     @torch.no_grad()
-    def Inference_Step(self, speakers, rhymes, contents, pitches, rhyme_Labels, content_Labels, pitch_Labels, lengths, start_Index= 0, tag_Step= False, tag_Index= False):
+    def Inference_Step(self, speakers, rhythms, contents, pitches, rhythm_Labels, content_Labels, pitch_Labels, lengths, start_Index= 0, tag_Step= False, tag_Index= False):
         speakers = speakers.to(device)
-        rhymes = rhymes.to(device)
+        rhythms = rhythms.to(device)
         contents = contents.to(device)
         pitches = pitches.to(device)
 
         reconstructions = self.model_Dict['SpeechSplit'](
-            rhymes= rhymes,
+            rhythms= rhythms,
             contents= contents,
             pitches= pitches,
             speakers= speakers
@@ -250,22 +250,22 @@ class Trainer:
 
         
         os.makedirs(os.path.join(hp_Dict['Inference_Path'], 'Step-{}'.format(self.steps), 'PNG').replace("\\", "/"), exist_ok= True)
-        for index, (speaker, rhyme, content, pitch, reconstruction, rhyme_Label, content_Label, pitch_Label, length) in enumerate(zip(
+        for index, (speaker, rhythm, content, pitch, reconstruction, rhythm_Label, content_Label, pitch_Label, length) in enumerate(zip(
             speakers.cpu().numpy(),
-            rhymes.cpu().numpy(),
+            rhythms.cpu().numpy(),
             contents.cpu().numpy(),
             pitches.cpu().numpy(),
             reconstructions.cpu().numpy(),
-            rhyme_Labels,
+            rhythm_Labels,
             content_Labels,
             pitch_Labels,
             lengths
             )):
-            title = 'Converted_Speaker: {}    Rhyme: {}    Content: {}    Pitch: {}'.format(speaker, rhyme_Label, content_Label, pitch_Label)            
+            title = 'Converted_Speaker: {}    Rhythm: {}    Content: {}    Pitch: {}'.format(speaker, rhythm_Label, content_Label, pitch_Label)            
             new_Figure = plt.figure(figsize=(20, 5 * 4), dpi=100)
             plt.subplot(411)
-            plt.imshow(rhyme[:, :length], aspect='auto', origin='lower')
-            plt.title('Rhyme mel    {}'.format(title))
+            plt.imshow(rhythm[:, :length], aspect='auto', origin='lower')
+            plt.title('Rhythm mel    {}'.format(title))
             plt.colorbar()
             plt.subplot(412)
             plt.imshow(content[:, :length], aspect='auto', origin='lower')
@@ -284,7 +284,7 @@ class Trainer:
             file = '{}S_{}.R_{}.C_{}.P_{}{}.PNG'.format(
                 'Step-{}.'.format(self.steps) if tag_Step else '',
                 speaker,
-                rhyme_Label,
+                rhythm_Label,
                 content_Label,
                 pitch_Label,
                 '.IDX_{}'.format(index + start_Index) if tag_Index else ''
@@ -302,10 +302,10 @@ class Trainer:
                 mode= 'replicate'
                 )
 
-            for index, (audio, speaker, rhyme_Label, content_Label, pitch_Label, length) in enumerate(zip(
+            for index, (audio, speaker, rhythm_Label, content_Label, pitch_Label, length) in enumerate(zip(
                 self.model_Dict['PWGAN'](noises, reconstructions).cpu().numpy(),
                 speakers.cpu().numpy(),
-                rhyme_Labels,
+                rhythm_Labels,
                 content_Labels,
                 pitch_Labels,
                 lengths
@@ -313,7 +313,7 @@ class Trainer:
                 file = '{}S_{}.R_{}.C_{}.P_{}{}.WAV'.format(
                     'Step-{}.'.format(self.steps) if tag_Step else '',
                     speaker,
-                    rhyme_Label,
+                    rhythm_Label,
                     content_Label,
                     pitch_Label,
                     '.IDX_{}'.format(index + start_Index) if tag_Index else ''
@@ -326,10 +326,10 @@ class Trainer:
         else:
             os.makedirs(os.path.join(hp_Dict['Inference_Path'], 'Step-{}'.format(self.steps), 'NPY').replace("\\", "/"), exist_ok= True)
 
-            for index, (reconstruction, speaker, rhyme_Label, content_Label, pitch_Label, length) in enumerate(zip(
+            for index, (reconstruction, speaker, rhythm_Label, content_Label, pitch_Label, length) in enumerate(zip(
                 reconstructions.cpu().numpy(),
                 speakers.cpu().numpy(),
-                rhyme_Labels,
+                rhythm_Labels,
                 content_Labels,
                 pitch_Labels,
                 lengths
@@ -337,7 +337,7 @@ class Trainer:
                 file = '{}S_{}.R_{}.C_{}.P_{}{}.NPY'.format(
                     'Step-{}.'.format(self.steps) if tag_Step else '',
                     speaker,
-                    rhyme_Label,
+                    rhythm_Label,
                     content_Label,
                     pitch_Label,
                     '.IDX_{}'.format(index + start_Index) if tag_Index else ''
@@ -354,12 +354,12 @@ class Trainer:
         for model in self.model_Dict.values():
             model.eval()
 
-        for step, (speakers, rhymes, contents, pitches, rhyme_Labels, content_Labels, pitch_Labels, lengths) in tqdm(
+        for step, (speakers, rhythms, contents, pitches, rhythm_Labels, content_Labels, pitch_Labels, lengths) in tqdm(
             enumerate(self.dataLoader_Dict['Inference']),
             desc='[Inference]',
             total= math.ceil(len(self.dataLoader_Dict['Inference'].dataset) / hp_Dict['Train']['Batch_Size'])
             ):
-            self.Inference_Step(speakers, rhymes, contents, pitches, rhyme_Labels, content_Labels, pitch_Labels, lengths, start_Index= step * hp_Dict['Train']['Batch_Size'])
+            self.Inference_Step(speakers, rhythms, contents, pitches, rhythm_Labels, content_Labels, pitch_Labels, lengths, start_Index= step * hp_Dict['Train']['Batch_Size'])
 
         for model in self.model_Dict.values():
             model.train()

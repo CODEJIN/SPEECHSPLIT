@@ -19,7 +19,7 @@ Encoder:
         Max_Length: 32
         Min_Factor: 0.5
         Max_Factor: 1.5
-    Rhyme:
+    Rhythm:
         Conv:
             Channels: [128]
             Kernel_Sizes: [5]

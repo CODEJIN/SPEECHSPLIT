@@ -105,33 +105,41 @@
 #         with open(path, 'wb') as f:
 #             pickle.dump(pattern, f, protocol=4)
 
-import numpy as np
-import matplotlib.pyplot as plt
-import librosa
-from yin import pitch_calc
-from Audio import melspectrogram
-import torch
+# import numpy as np
+# import matplotlib.pyplot as plt
+# import librosa
+# from yin import pitch_calc
+# from Audio import melspectrogram
+# import torch
 
-sig = librosa.load("D:/Pattern/ENG/VCTK/wav48/p225/p225_001.wav", 16000)[0]
-sig = librosa.effects.trim(sig, 15, frame_length= 32, hop_length= 16)[0]
-sig = librosa.util.normalize(sig)
+# sig = librosa.load("D:/Pattern/ENG/VCTK/wav48/p225/p225_001.wav", 16000)[0]
+# sig = librosa.effects.trim(sig, 15, frame_length= 32, hop_length= 16)[0]
+# sig = librosa.util.normalize(sig)
 
-a = pitch_calc(sig, 16000, confidence_threshold= 0.6, gaussian_smoothing_sigma= 0.0)
-b = melspectrogram(sig, 1025, 256, 1024, 80, 16000, 4)
-c = torch.nn.functional.interpolate(input= torch.FloatTensor(a).unsqueeze(0).unsqueeze(0), size= 400, mode= 'linear', align_corners= True).squeeze(0).squeeze(0).numpy()
-d = torch.nn.functional.interpolate(input= torch.FloatTensor(b).unsqueeze(0), size= 400, mode= 'linear', align_corners= True).squeeze(0).numpy()
+# a = pitch_calc(sig, 16000, confidence_threshold= 0.6, gaussian_smoothing_sigma= 0.0)
+# b = melspectrogram(sig, 1025, 256, 1024, 80, 16000, 4)
+# c = torch.nn.functional.interpolate(input= torch.FloatTensor(a).unsqueeze(0).unsqueeze(0), size= 400, mode= 'linear', align_corners= True).squeeze(0).squeeze(0).numpy()
+# d = torch.nn.functional.interpolate(input= torch.FloatTensor(b).unsqueeze(0), size= 400, mode= 'linear', align_corners= True).squeeze(0).numpy()
 
-print(a.shape, b.shape, c.shape, d.shape)
-print(torch.nn.functional.interpolate(input= torch.FloatTensor(b).unsqueeze(0), size= 400, mode= 'linear', align_corners= True).shape)
+# print(a.shape, b.shape, c.shape, d.shape)
+# print(torch.nn.functional.interpolate(input= torch.FloatTensor(b).unsqueeze(0), size= 400, mode= 'linear', align_corners= True).shape)
 
-plt.subplot(411)
-plt.plot(a)
-plt.margins(x=0)
-plt.subplot(412)
-plt.imshow(b, aspect='auto', origin='lower')
-plt.subplot(413)
-plt.plot(c)
-plt.margins(x=0)
-plt.subplot(414)
-plt.imshow(d, aspect='auto', origin='lower')
-plt.show()
+# plt.subplot(411)
+# plt.plot(a)
+# plt.margins(x=0)
+# plt.subplot(412)
+# plt.imshow(b, aspect='auto', origin='lower')
+# plt.subplot(413)
+# plt.plot(c)
+# plt.margins(x=0)
+# plt.subplot(414)
+# plt.imshow(d, aspect='auto', origin='lower')
+# plt.show()
+
+
+import librosa, time,os
+os.environ['FOR_DISABLE_CONSOLE_CTRL_HANDLER'] = '1'
+
+while True:
+    print('##########')
+    time.sleep(0.1)

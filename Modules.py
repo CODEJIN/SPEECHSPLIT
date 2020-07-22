@@ -14,14 +14,14 @@ class SpeechSplit(torch.nn.Module):
 
         self.layer_Dict['Pitch_Quantinizer'] = Quantinizer(hp_Dict['Sound']['Quantinized_Pitch_Dim'])
 
-        self.layer_Dict['Rhyme_Encoder'] = Encoder(
+        self.layer_Dict['Rhythm_Encoder'] = Encoder(
             input_channels= hp_Dict['Sound']['Mel_Dim'],
-            conv_channels= hp_Dict['Encoder']['Rhyme']['Conv']['Channels'],
-            conv_kernel_sizes= hp_Dict['Encoder']['Rhyme']['Conv']['Kernel_Sizes'],
-            norm_groups= hp_Dict['Encoder']['Rhyme']['Norm_Grous'],
-            lstm_stacks= hp_Dict['Encoder']['Rhyme']['LSTM']['Stacks'],
-            lstm_size= hp_Dict['Encoder']['Rhyme']['LSTM']['Sizes'],
-            frequency= hp_Dict['Encoder']['Rhyme']['Frequency'],
+            conv_channels= hp_Dict['Encoder']['Rhythm']['Conv']['Channels'],
+            conv_kernel_sizes= hp_Dict['Encoder']['Rhythm']['Conv']['Kernel_Sizes'],
+            norm_groups= hp_Dict['Encoder']['Rhythm']['Norm_Grous'],
+            lstm_stacks= hp_Dict['Encoder']['Rhythm']['LSTM']['Stacks'],
+            lstm_size= hp_Dict['Encoder']['Rhythm']['LSTM']['Sizes'],
+            frequency= hp_Dict['Encoder']['Rhythm']['Frequency'],
             use_random_resampling= False
             )
         self.layer_Dict['Content_Encoder'] = Encoder(
@@ -47,7 +47,7 @@ class SpeechSplit(torch.nn.Module):
 
         self.layer_Dict['Decoder'] = Decoder(
             input_channels= \
-                hp_Dict['Encoder']['Rhyme']['LSTM']['Sizes'] * 2 + \
+                hp_Dict['Encoder']['Rhythm']['LSTM']['Sizes'] * 2 + \
                 hp_Dict['Encoder']['Content']['LSTM']['Sizes'] * 2 + \
                 hp_Dict['Encoder']['Pitch']['LSTM']['Sizes'] * 2 + \
                 hp_Dict['Num_Speakers'], #one-hot
@@ -55,17 +55,17 @@ class SpeechSplit(torch.nn.Module):
             lstm_size= hp_Dict['Decoder']['LSTM']['Sizes'],
             )
 
-    def forward(self, rhymes, contents, pitches, speakers, random_resampling_factors= None):
+    def forward(self, rhythms, contents, pitches, speakers, random_resampling_factors= None):
         assert contents.size(2) == pitches.size(1)
 
         pitches = self.layer_Dict['Pitch_Quantinizer'](pitches).transpose(2, 1)
         speakers = torch.nn.functional.one_hot(speakers, hp_Dict['Num_Speakers']).float()
         
-        rhymes = self.layer_Dict['Rhyme_Encoder'](rhymes)
+        rhythms = self.layer_Dict['Rhythm_Encoder'](rhythms)
         contents = self.layer_Dict['Content_Encoder'](contents, random_resampling_factors)
         pitches = self.layer_Dict['Pitch_Encoder'](pitches, random_resampling_factors)
 
-        upsamples = torch.cat([rhymes, contents, pitches, speakers.unsqueeze(2).expand(-1, -1, rhymes.size(2))], dim= 1)
+        upsamples = torch.cat([rhythms, contents, pitches, speakers.unsqueeze(2).expand(-1, -1, rhythms.size(2))], dim= 1)
         converted_Mels = self.layer_Dict['Decoder'](upsamples)
 
         return converted_Mels

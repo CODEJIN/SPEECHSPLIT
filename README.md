@@ -39,7 +39,7 @@ Before proceeding, please set the pattern, inference, and checkpoint paths in 'H
     * Setting how many speaekers are used.    
 
 * Encoder
-    * Setting rhyme, content and pitch encoder parameters
+    * Setting rhythm, content and pitch encoder parameters
     * Random_Resample set the content and pitch encoder's random resample parameters.
 
 * Decoder
