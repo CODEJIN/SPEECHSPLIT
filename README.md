@@ -21,7 +21,7 @@
 
 * Currently uploaded code is for the replication of papaer result.
 * I used 106 speakers in VCTK for model training.
-* Two speaker is used for inference only.
+* Two speakers are used for inference only.
 * I will add the compatible dataset later.
 
 | Dataset   | Dataset address                                 |
